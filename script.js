@@ -15,13 +15,14 @@ import {
 // Click on the web app you created, and select "Config" to see these details.
 //
 const firebaseConfig = {
-  apiKey: "AIzaSyCp2uabmh3eg2Fjs0RBlrZBtn8XN0jAwlE",
-  authDomain: "jora-d25ef.firebaseapp.com",
-  projectId: "jora-d25ef",
-  storageBucket: "jora-d25ef.firebasestorage.app",
-  messagingSenderId: "1028125725395",
-  appId: "1:1028125725395:web:40b6dd31cf45347b197a26"
-};
+    apiKey: "AIzaSyCp2uabmh3eg2Fjs0RBlrZBtn8XN0jAwlE",
+    authDomain: "jora-d25ef.firebaseapp.com",
+    projectId: "jora-d25ef",
+    storageBucket: "jora-d25ef.firebasestorage.app",
+    messagingSenderId: "1028125725395",
+    appId: "1:1028125725395:web:8df1a67fc4a376b1197a26"
+  };
+
 // --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -85,8 +86,16 @@ async function handleAuthSubmit(e) {
 
     try {
         await signInWithEmailAndPassword(auth, email, password);
-        showMessage('Login successful!', false);
+        showMessage('Login successful! Redirecting...', false);
         authForm.reset();
+
+        // --- REDIRECTION LOGIC ---
+        // Wait for 1.5 seconds to show the success message, then redirect.
+        setTimeout(() => {
+            // Change 'dashboard.html' to the page you want to redirect to.
+            window.location.href = 'dashboard.html';
+        }, 1500);
+
     } catch (error) {
         console.error("Authentication Error:", error);
         let friendlyMessage = "An error occurred. Please try again.";
@@ -106,6 +115,7 @@ async function handleAuthSubmit(e) {
         }
         showMessage(friendlyMessage, true);
     } finally {
+        // This part only runs if there's an error, as success leads to redirection.
         submitButton.disabled = false;
         submitButton.textContent = 'Sign In';
     }
