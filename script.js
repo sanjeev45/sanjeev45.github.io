@@ -15,7 +15,8 @@ import { getFirestore, setLogLevel } from "https://www.gstatic.com/firebasejs/11
 
 // --- Firebase Configuration ---
 // These global variables are provided by the environment.
-const firebaseConfig = {
+const firebaseConfig = typeof __firebase_config !== 'undefined' 
+    ? JSON.parse(__firebase_config)  {
     apiKey: "AIzaSyCp2uabmh3eg2Fjs0RBlrZBtn8XN0jAwlE",
     authDomain: "jora-d25ef.firebaseapp.com",
     projectId: "jora-d25ef",
