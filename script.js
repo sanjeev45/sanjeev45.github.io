@@ -3,7 +3,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { 
     getAuth, 
     onAuthStateChanged,
-    createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -25,7 +24,6 @@ const firebaseConfig = {
   };
 
 // --- Initialize Firebase ---
-// This will now work correctly once you've added your config above.
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
@@ -35,44 +33,12 @@ const formView = document.getElementById('form-view');
 const userEmailElement = document.getElementById('user-email');
 const logoutButton = document.getElementById('logout-button');
 const authForm = document.getElementById('auth-form');
-const formTitle = document.getElementById('form-title');
 const emailInput = document.getElementById('email-address');
 const passwordInput = document.getElementById('password');
-const confirmPasswordContainer = document.getElementById('confirm-password-container');
-const confirmPasswordInput = document.getElementById('confirm-password');
 const submitButton = document.getElementById('submit-button');
-const toggleModeLink = document.getElementById('toggle-mode');
 const messageArea = document.getElementById('message-area');
 
-// --- State Management ---
-let isSignUpMode = false;
-
 // --- UI Update Functions ---
-
-/**
- * Toggles the form between Login and Sign Up modes.
- */
-function toggleAuthMode() {
-    isSignUpMode = !isSignUpMode;
-    messageArea.textContent = ''; // Clear any previous messages
-    authForm.reset(); // Clear input fields
-
-    if (isSignUpMode) {
-        formTitle.textContent = 'Sign Up';
-        submitButton.textContent = 'Create Account';
-        toggleModeLink.innerHTML = 'Have an account? <span class="font-bold">Login</span>';
-        confirmPasswordContainer.style.display = 'block';
-        confirmPasswordInput.required = true;
-        passwordInput.classList.remove('rounded-b-md');
-    } else {
-        formTitle.textContent = 'Login';
-        submitButton.textContent = 'Sign In';
-        toggleModeLink.innerHTML = 'Need an account? <span class="font-bold">Sign Up</span>';
-        confirmPasswordContainer.style.display = 'none';
-        confirmPasswordInput.required = false;
-        passwordInput.classList.add('rounded-b-md');
-    }
-}
 
 /**
  * Displays a message in the message area.
@@ -92,24 +58,21 @@ function showMessage(text, isError = false) {
  */
 function updateUI(user) {
     if (user && !user.isAnonymous) {
-        // User is signed in with Email/Password
+        // User is signed in
         loggedInView.style.display = 'block';
         formView.style.display = 'none';
         userEmailElement.textContent = user.email;
     } else {
-        // User is signed out or anonymous
+        // User is signed out
         loggedInView.style.display = 'none';
         formView.style.display = 'block';
-        if (isSignUpMode) {
-            toggleAuthMode();
-        }
     }
 }
 
 // --- Authentication Logic ---
 
 /**
- * Handles the form submission for both login and sign-up.
+ * Handles the form submission for logging in.
  * @param {Event} e - The form submission event.
  */
 async function handleAuthSubmit(e) {
@@ -122,17 +85,8 @@ async function handleAuthSubmit(e) {
     const password = passwordInput.value;
 
     try {
-        if (isSignUpMode) {
-            const confirmPassword = confirmPasswordInput.value;
-            if (password !== confirmPassword) {
-                throw new Error("Passwords do not match.");
-            }
-            await createUserWithEmailAndPassword(auth, email, password);
-            showMessage('Account created successfully! You are now logged in.', false);
-        } else {
-            await signInWithEmailAndPassword(auth, email, password);
-            showMessage('Login successful!', false);
-        }
+        await signInWithEmailAndPassword(auth, email, password);
+        showMessage('Login successful!', false);
         authForm.reset();
     } catch (error) {
         console.error("Authentication Error:", error);
@@ -144,24 +98,17 @@ async function handleAuthSubmit(e) {
                     break;
                 case 'auth/user-not-found':
                 case 'auth/wrong-password':
+                case 'auth/invalid-credential':
                      friendlyMessage = "Invalid email or password.";
                      break;
-                case 'auth/email-already-in-use':
-                    friendlyMessage = "An account with this email already exists.";
-                    break;
-                case 'auth/weak-password':
-                    friendlyMessage = "Password should be at least 6 characters.";
-                    break;
                 default:
-                    friendlyMessage = error.message;
+                    friendlyMessage = "An unknown error occurred. Please check the console.";
             }
-        } else {
-           friendlyMessage = error.message;
         }
         showMessage(friendlyMessage, true);
     } finally {
         submitButton.disabled = false;
-        submitButton.textContent = isSignUpMode ? 'Create Account' : 'Sign In';
+        submitButton.textContent = 'Sign In';
     }
 }
 
@@ -180,10 +127,6 @@ async function handleLogout() {
 
 // --- Event Listeners ---
 authForm.addEventListener('submit', handleAuthSubmit);
-toggleModeLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    toggleAuthMode();
-});
 logoutButton.addEventListener('click', handleLogout);
 
 // --- Main Execution ---
