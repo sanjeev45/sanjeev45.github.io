@@ -1,0 +1,84 @@
+:root {
+  --bg: #e0e5ec;
+  --shadow-light: #ffffff;
+  --shadow-dark: #a3b1c6;
+  --accent: #3f72af;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background-color: var(--bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-card {
+  background: var(--bg);
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 10px 10px 20px var(--shadow-dark),
+              -10px -10px 20px var(--shadow-light);
+  width: 100%;
+  max-width: 350px;
+}
+
+.login-card h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: inset 5px 5px 10px var(--shadow-dark),
+              inset -5px -5px 10px var(--shadow-light);
+  font-size: 16px;
+  color: #333;
+}
+
+.login-card input::placeholder {
+  color: #888;
+}
+
+.login-card input:focus {
+  outline: none;
+}
+
+.login-card button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.3s;
+}
+
+.login-card button:hover {
+  background-color: #2c5aa0;
+}
+
+#error {
+  color: red;
+  text-align: center;
+  margin-top: -15px;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
