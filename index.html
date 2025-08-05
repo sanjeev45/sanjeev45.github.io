@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login with GitHub - joragithub.me</title>
   <style>
     body {
@@ -32,39 +32,31 @@
 <body>
 
   <h1>Welcome to joragithub.me</h1>
-  <button onclick="loginWithGitHub()">Login with GitHub</button>
-
+  <button id="loginBtn">Login with GitHub</button>
   <div id="welcome"></div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-
   <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithPopup, GithubAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
+    // 🔐 Your Firebase Config (replace with your actual config)
+    const firebaseConfig = {
     apiKey: "AIzaSyCp2uabmh3eg2Fjs0RBlrZBtn8XN0jAwlE",
     authDomain: "jora-d25ef.firebaseapp.com",
     projectId: "jora-d25ef",
     storageBucket: "jora-d25ef.firebasestorage.app",
     messagingSenderId: "1028125725395",
-    appId: "1:1028125725395:web:40b6dd31cf45347b197a26"
+    appId: "1:1028125725395:web:8df1a67fc4a376b1197a26"
   };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+    // 🔧 Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GithubAuthProvider();
 
-
-    const auth = firebase.auth();
-    const provider = new firebase.auth.GithubAuthProvider();
-
-    function loginWithGitHub() {
-      auth.signInWithPopup(provider)
+    // 🎯 Login function
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      signInWithPopup(auth, provider)
         .then((result) => {
           const user = result.user;
           document.getElementById("welcome").textContent = `Hello, ${user.displayName || user.email || "GitHub User"}! 🎉`;
@@ -73,7 +65,8 @@
           console.error("Login failed:", error);
           alert("Login failed: " + error.message);
         });
-    }
+    });
   </script>
+
 </body>
 </html>
