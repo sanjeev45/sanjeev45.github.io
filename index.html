@@ -2,35 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login with GitHub - joragithub.me</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #f5f5f5;
+      margin-top: 100px;
+    }
 
-<!-- Firebase Auth -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-  <link rel="stylesheet" href="style.css">
+    button {
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #welcome {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #2c3e50;
+    }
+  </style>
 </head>
 <body>
-  <div class="login-card">
-    <h2>Login</h2>
-    <form onsubmit="return login()">
-      <input type="text" id="username" placeholder="Username" required>
-      <input type="password" id="password" placeholder="Password" required>
-      <p id="error"></p>
-      <button type="submit">Log In</button>
-    </form>
-  </div>
 
-  <script>
-    function login() {
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
-      if (user === "admin" && pass === "1234") {
-        window.location.href = "dashboard.html";
-      } else {
-        document.getElementById('error').textContent = "Invalid username or password.";
-      }
-      return false;
+  <h1>Welcome to joragithub.me</h1>
+  <button onclick="loginWithGitHub()">Login with GitHub</button>
+
+  <div id="welcome"></div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+
+  <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCp2uabmh3eg2Fjs0RBlrZBtn8XN0jAwlE",
+    authDomain: "jora-d25ef.firebaseapp.com",
+    projectId: "jora-d25ef",
+    storageBucket: "jora-d25ef.firebasestorage.app",
+    messagingSenderId: "1028125725395",
+    appId: "1:1028125725395:web:40b6dd31cf45347b197a26"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+
+
+    const auth = firebase.auth();
+    const provider = new firebase.auth.GithubAuthProvider();
+
+    function loginWithGitHub() {
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          const user = result.user;
+          document.getElementById("welcome").textContent = `Hello, ${user.displayName || user.email || "GitHub User"}! 🎉`;
+        })
+        .catch((error) => {
+          console.error("Login failed:", error);
+          alert("Login failed: " + error.message);
+        });
     }
   </script>
 </body>
