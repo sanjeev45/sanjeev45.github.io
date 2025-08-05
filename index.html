@@ -1,8 +1,316 @@
-<body>
-  <h2>Login Page</h2>
-  <div>
-    <input type="email" id="email" placeholder="Email" required /><br><br>
-    <input type="password" id="password" placeholder="Password" required /><br><br>
-    <button onclick="login()">Login</button>
-    <p id="login-message" style="color: red;"></p>   </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Authentication</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom styles for the page */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Simple transition for UI elements */
+        .form-container, .input-field, .auth-button {
+            transition: all 0.3s ease-in-out;
+        }
+        /* Hide spinner arrows on number inputs */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen">
+
+    <div id="auth-container" class="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+        
+        <!-- Logged In View -->
+        <div id="logged-in-view" class="hidden text-center">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome!</h2>
+            <p class="text-gray-600 dark:text-gray-300 mt-2">You are logged in as:</p>
+            <p id="user-email" class="font-medium text-indigo-600 dark:text-indigo-400 break-all"></p>
+            <button id="logout-button" class="w-full mt-6 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                Logout
+            </button>
+        </div>
+
+        <!-- Login/Sign Up Form View -->
+        <div id="form-view">
+            <h2 id="form-title" class="text-2xl font-bold text-center text-gray-900 dark:text-white">Login</h2>
+            <form id="auth-form" class="mt-8 space-y-6">
+                <input type="hidden" name="remember" value="true">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="email-address" class="sr-only">Email address</label>
+                        <input id="email-address" name="email" type="email" autocomplete="email" required class="input-field appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Email address">
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Password</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="input-field appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Password">
+                    </div>
+                    <div id="confirm-password-container" class="hidden">
+                         <label for="confirm-password" class="sr-only">Confirm Password</label>
+                         <input id="confirm-password" name="confirm-password" type="password" required class="input-field appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Confirm Password">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" id="submit-button" class="auth-button group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Sign In
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Message Area -->
+            <div id="message-area" class="mt-4 text-center text-sm font-medium"></div>
+
+            <div class="text-sm text-center mt-4">
+                <a href="#" id="toggle-mode" class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                    Need an account? Sign Up
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import necessary functions from the Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            signInAnonymously,
+            signInWithCustomToken,
+            setPersistence,
+            inMemoryPersistence
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
+        // These global variables are provided by the environment.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" }; // Fallback for local dev
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // --- Initialize Firebase ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        setLogLevel('debug'); // Enable debug logging for Firestore
+
+        // --- DOM Element References ---
+        const loggedInView = document.getElementById('logged-in-view');
+        const formView = document.getElementById('form-view');
+        const userEmailElement = document.getElementById('user-email');
+        const logoutButton = document.getElementById('logout-button');
+        const authForm = document.getElementById('auth-form');
+        const formTitle = document.getElementById('form-title');
+        const emailInput = document.getElementById('email-address');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordContainer = document.getElementById('confirm-password-container');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const submitButton = document.getElementById('submit-button');
+        const toggleModeLink = document.getElementById('toggle-mode');
+        const messageArea = document.getElementById('message-area');
+        
+        // --- State Management ---
+        let isSignUpMode = false;
+
+        // --- UI Update Functions ---
+
+        /**
+         * Toggles the form between Login and Sign Up modes.
+         */
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
+            messageArea.textContent = ''; // Clear any previous messages
+            authForm.reset(); // Clear input fields
+
+            if (isSignUpMode) {
+                formTitle.textContent = 'Sign Up';
+                submitButton.textContent = 'Create Account';
+                toggleModeLink.innerHTML = 'Have an account? <span class="font-bold">Login</span>';
+                confirmPasswordContainer.style.display = 'block';
+                confirmPasswordInput.required = true;
+                // Adjust border radius for better aesthetics
+                passwordInput.classList.remove('rounded-b-md');
+            } else {
+                formTitle.textContent = 'Login';
+                submitButton.textContent = 'Sign In';
+                toggleModeLink.innerHTML = 'Need an account? <span class="font-bold">Sign Up</span>';
+                confirmPasswordContainer.style.display = 'none';
+                confirmPasswordInput.required = false;
+                // Adjust border radius
+                passwordInput.classList.add('rounded-b-md');
+            }
+        }
+
+        /**
+         * Displays a message in the message area.
+         * @param {string} text - The message to display.
+         * @param {boolean} isError - True if the message is an error, false for success.
+         */
+        function showMessage(text, isError = false) {
+            messageArea.textContent = text;
+            messageArea.className = isError 
+                ? 'text-red-500 text-sm font-medium' 
+                : 'text-green-500 text-sm font-medium';
+        }
+        
+        /**
+         * Updates the entire UI based on the user's authentication state.
+         * @param {object|null} user - The Firebase user object, or null if logged out.
+         */
+        function updateUI(user) {
+            if (user) {
+                // User is signed in
+                loggedInView.style.display = 'block';
+                formView.style.display = 'none';
+                userEmailElement.textContent = user.email;
+            } else {
+                // User is signed out
+                loggedInView.style.display = 'none';
+                formView.style.display = 'block';
+                // Reset to login mode
+                if (isSignUpMode) {
+                    toggleAuthMode();
+                }
+            }
+        }
+
+        // --- Authentication Logic ---
+
+        /**
+         * Handles the form submission for both login and sign-up.
+         * @param {Event} e - The form submission event.
+         */
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            submitButton.disabled = true;
+            submitButton.textContent = 'Processing...';
+            showMessage(''); // Clear previous messages
+
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            try {
+                if (isSignUpMode) {
+                    // --- Sign Up Logic ---
+                    const confirmPassword = confirmPasswordInput.value;
+                    if (password !== confirmPassword) {
+                        throw new Error("Passwords do not match.");
+                    }
+                    if (password.length < 6) {
+                        throw new Error("Password should be at least 6 characters.");
+                    }
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    showMessage('Account created successfully! You are now logged in.', false);
+                } else {
+                    // --- Login Logic ---
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showMessage('Login successful!', false);
+                }
+                authForm.reset();
+            } catch (error) {
+                console.error("Authentication Error:", error);
+                // Provide user-friendly error messages
+                let friendlyMessage = "An error occurred. Please try again.";
+                if (error.code) {
+                    switch (error.code) {
+                        case 'auth/invalid-email':
+                            friendlyMessage = "Please enter a valid email address.";
+                            break;
+                        case 'auth/user-not-found':
+                        case 'auth/wrong-password':
+                             friendlyMessage = "Invalid email or password.";
+                             break;
+                        case 'auth/email-already-in-use':
+                            friendlyMessage = "An account with this email already exists.";
+                            break;
+                        case 'auth/weak-password':
+                            friendlyMessage = "Password is too weak. It should be at least 6 characters.";
+                            break;
+                        default:
+                            friendlyMessage = error.message;
+                    }
+                } else {
+                   friendlyMessage = error.message;
+                }
+                showMessage(friendlyMessage, true);
+            } finally {
+                // Re-enable the button and reset its text
+                submitButton.disabled = false;
+                submitButton.textContent = isSignUpMode ? 'Create Account' : 'Sign In';
+            }
+        }
+
+        /**
+         * Signs the current user out.
+         */
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                console.log("User signed out successfully.");
+            } catch (error) {
+                console.error("Logout Error:", error);
+                showMessage("Failed to log out. Please try again.", true);
+            }
+        }
+
+        // --- Event Listeners ---
+        authForm.addEventListener('submit', handleAuthSubmit);
+        toggleModeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleAuthMode();
+        });
+        logoutButton.addEventListener('click', handleLogout);
+
+        // --- Main Execution ---
+        
+        // Listen for authentication state changes and update the UI accordingly.
+        // This is the primary way to manage the user's session.
+        onAuthStateChanged(auth, (user) => {
+            updateUI(user);
+        });
+
+        // Attempt to sign in with a custom token if provided by the environment.
+        // Falls back to anonymous sign-in if no token is available.
+        (async () => {
+            try {
+                // Use in-memory persistence to avoid session conflicts in this environment
+                await setPersistence(auth, inMemoryPersistence);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    console.log("Attempting to sign in with custom token...");
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    console.log("No custom token found, signing in anonymously...");
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Initial sign-in error:", error);
+                showMessage("Could not initialize session. Please refresh.", true);
+            }
+        })();
+
+    </script>
 </body>
+</html>
