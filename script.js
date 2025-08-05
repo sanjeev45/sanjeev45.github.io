@@ -15,16 +15,14 @@ import { getFirestore, setLogLevel } from "https://www.gstatic.com/firebasejs/11
 
 // --- Firebase Configuration ---
 // These global variables are provided by the environment.
-const firebaseConfig = typeof __firebase_config !== 'undefined' 
-    ? JSON.parse(__firebase_config) 
-     {
+const firebaseConfig = {
     apiKey: "AIzaSyCp2uabmh3eg2Fjs0RBlrZBtn8XN0jAwlE",
     authDomain: "jora-d25ef.firebaseapp.com",
     projectId: "jora-d25ef",
     storageBucket: "jora-d25ef.firebasestorage.app",
     messagingSenderId: "1028125725395",
     appId: "1:1028125725395:web:8df1a67fc4a376b1197a26"
-  }; // Fallback for local dev
+  };
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
