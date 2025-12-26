@@ -15,12 +15,7 @@ import {
 // Click on the web app you created, and select "Config" to see these details.
 //
 const firebaseConfig = {
-    apiKey: "AIzaSyCp2uabmh3eg2Fjs0RBlrZBtn8XN0jAwlE",
-    authDomain: "jora-d25ef.firebaseapp.com",
-    projectId: "jora-d25ef",
-    storageBucket: "jora-d25ef.firebasestorage.app",
-    messagingSenderId: "1028125725395",
-    appId: "1:1028125725395:web:8df1a67fc4a376b1197a26"
+   
   };
 
 // --- Initialize Firebase ---
